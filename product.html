@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoStraw | 3D Prototype</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        /* Make canvas fill the screen minus nav */
+        #canvas-wrapper {
+            position: relative;
+            height: 90vh;
+            background: radial-gradient(circle at center, #f8f9fa 0%, #e9ecef 100%);
+            overflow: hidden;
+            cursor: grab; /* Shows hand icon to indicate interaction */
+        }
+        #canvas-wrapper:active {
+            cursor: grabbing;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html" class="logo">EcoStraw.</a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="process.html">Process</a>
+            <a href="product.html" class="active">3D Product</a>
+            <a href="team.html">Team</a>
+            <a href="archive.html">Docs</a>
+        </div>
+    </nav>
+
+    <div id="canvas-wrapper">
+        <div id="canvas-container" style="width: 100%; height: 100%;"></div>
+        
+        <div class="card reveal" style="position: absolute; bottom: 40px; left: 40px; width: 300px; z-index: 10;">
+            <h3 style="margin-bottom: 10px;">Interactive Prototype</h3>
+            <p style="font-size: 0.95rem; color: #555;">
+                <strong>🖱️ Drag your mouse</strong> left or right to rotate the model.
+            </p>
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+            <ul style="padding-left: 20px; font-size: 0.9rem; color: #444;">
+                <li><strong>Material:</strong> Polished Bamboo</li>
+                <li><strong>Length:</strong> 8.5 Inches</li>
+                <li><strong>Includes:</strong> Cleaning brush</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        // Transparent background so CSS gradient shows through
+        scene.background = null; 
+
+        const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.shadowMap.enabled = true;
+        container.appendChild(renderer.domElement);
+
+        // Lighting (Studio Setup)
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+        
+        const keyLight = new THREE.DirectionalLight(0xffffff, 0.9);
+        keyLight.position.set(5, 5, 10);
+        keyLight.castShadow = true;
+        scene.add(keyLight);
+
+        const backLight = new THREE.DirectionalLight(0xffffff, 0.4);
+        backLight.position.set(-5, 5, -10);
+        scene.add(backLight);
+
+        // The Straw Model
+        const geometry = new THREE.CylinderGeometry(0.25, 0.25, 7, 32, 1, true); // Hollow-ish look
+        // Inner straw (to make it look solid/thick)
+        const innerGeometry = new THREE.CylinderGeometry(0.23, 0.23, 7, 32);
+        
+        const material = new THREE.MeshStandardMaterial({ 
+            color: 0xd4a373, // Bamboo color
+            roughness: 0.4, 
+            metalness: 0.1 
+        });
+        
+        const innerMaterial = new THREE.MeshStandardMaterial({ color: 0x3d2b1f }); // Darker inside
+
+        const straw = new THREE.Mesh(geometry, material);
+        const innerStraw = new THREE.Mesh(innerGeometry, innerMaterial);
+        
+        straw.add(innerStraw); // Combine them
+        straw.rotation.z = 0.3; // Slight tilt
+        straw.castShadow = true;
+        scene.add(straw);
+
+        camera.position.z = 10;
+
+        // --- MOUSE INTERACTION LOGIC ---
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        const wrapper = document.getElementById('canvas-wrapper');
+
+        // Mouse Down
+        wrapper.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            previousMousePosition = { x: e.clientX, y: e.clientY };
+        });
+
+        // Mouse Up (Stop dragging)
+        window.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        // Mouse Move (Rotate)
+        wrapper.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const deltaMove = {
+                    x: e.clientX - previousMousePosition.x,
+                    y: e.clientY - previousMousePosition.y
+                };
+
+                // Rotate the straw based on mouse movement
+                straw.rotation.y += deltaMove.x * 0.01;
+                straw.rotation.x += deltaMove.y * 0.01;
+
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            }
+        });
+
+        // Animation Loop
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Auto-rotate slowly only if NOT dragging
+            if (!isDragging) {
+                straw.rotation.y += 0.002;
+            }
+            
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Responsive Resizing
+        window.addEventListener('resize', () => {
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>
