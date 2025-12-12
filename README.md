@@ -58,8 +58,8 @@ This is a **static website**, meaning it does not require a backend server or da
 ## The One
 Developed by student of the **Department of Information Technology**, KIET Group of Institutions.
 
-| Name | Roll Number | Role |
-| :--- | :--- | :--- |
+| Name | Roll Number |
+| :--- | :--- |
 | **Abhishek Raghav** | 202501100600009 |
 
 ---
